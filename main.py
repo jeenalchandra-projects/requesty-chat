@@ -111,12 +111,12 @@ async def api_balance(request: Request):
     async with httpx.AsyncClient() as client:
         try:
             r = await client.get(
-                f"{REQUESTY_MGMT}/manage/org/usage",
+                f"{REQUESTY_MGMT}/manage/org",
                 headers={"Authorization": f"Bearer {REQUESTY_API_KEY}"},
                 timeout=10.0,
             )
             r.raise_for_status()
-            return r.json()
+            return r.json()   # contains { name, balance }
         except Exception as exc:
             return {"error": str(exc)}
 
