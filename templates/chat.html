@@ -258,10 +258,16 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="balance-box">
-      <div class="section-label">Requesty Balance</div>
+      <div class="section-label">Spent this session log</div>
       <div class="balance-primary" id="bal-primary">—</div>
-      <div class="balance-sub" id="bal-sub"></div>
+      <div class="balance-sub" id="bal-sub">tracked from session history</div>
       <div class="balance-updated" id="bal-updated"></div>
+      <div style="margin-top:10px">
+        <a href="https://app.requesty.ai" target="_blank"
+           style="font-size:11px;color:#888;text-decoration:none;border-bottom:1px solid #ddd;">
+          View balance on Requesty ↗
+        </a>
+      </div>
     </div>
     <div class="history-box">
       <div class="section-label">Session History</div>
@@ -336,24 +342,7 @@
       const r = await fetch('/api/balance');
       const d = await r.json();
 
-      if (d.needs_manage_permission) {
-        // API key lacks manage permission — show local spend as fallback
-        primary.textContent = 'N/A';
-        sub.className = 'balance-sub';
-        sub.textContent = d.local_spend > 0
-          ? 'Local spend tracked: $' + fmt(d.local_spend, 5)
-          : 'Enable "Manage" permission\non your Requesty API key\nto see live balance.';
-      } else if (d.balance !== undefined && d.balance !== null) {
-        primary.textContent = '$' + fmt(d.balance, 4);
-        if (d.name) {
-          sub.className = 'balance-sub';
-          sub.textContent = d.name;
-        }
-      } else {
-        primary.textContent = 'N/A';
-        sub.className = 'balance-err';
-        sub.textContent = (d.error || '').slice(0, 80);
-      }
+      primary.textContent = '$' + fmt(d.local_spend ?? 0, 5);
       updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (e) {
       primary.textContent = 'Error';
