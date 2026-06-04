@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requesty Chat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      color: #111;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 15px; font-weight: bold; }
+    header a {
+      font-size: 12px;
+      color: #888;
+      text-decoration: none;
+    }
+    header a:hover { color: #111; }
+
+    /* ── Layout ─────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Chat panel ─────────────────────────────── */
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .toolbar label { font-size: 12px; color: #666; white-space: nowrap; }
+
+    select {
+      flex: 1;
+      max-width: 420px;
+      padding: 6px 9px;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus { border-color: #111; }
+
+    #new-btn {
+      padding: 6px 14px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      color: #444;
+      white-space: nowrap;
+    }
+    #new-btn:hover { border-color: #111; color: #111; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 10px;
+    }
+
+    .empty-state {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #bbb;
+    }
+
+    .msg { margin-bottom: 22px; }
+    .msg-role {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      color: #888;
+    }
+    .msg.user .msg-role { color: #111; }
+    .msg-body {
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user .msg-body {
+      display: inline-block;
+      max-width: 78%;
+      background: #f4f4f4;
+      padding: 10px 13px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    textarea {
+      flex: 1;
+      padding: 9px 11px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+      height: 58px;
+    }
+    textarea:focus { border-color: #111; }
+    #send-btn {
+      padding: 0 18px;
+      background: #111;
+      color: #fff;
+      border: none;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #send-btn:hover { background: #333; }
+    #send-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+      width: 270px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .balance-box {
+      padding: 18px 18px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+    .balance-primary {
+      font-size: 24px;
+      font-weight: bold;
+      color: #111;
+      line-height: 1;
+    }
+    .balance-sub {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #888;
+    }
+    .balance-err { font-size: 12px; color: #c00; margin-top: 4px; }
+    .balance-updated { font-size: 11px; color: #bbb; margin-top: 6px; }
+
+    .history-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .history-box .section-label { padding: 14px 18px 4px; flex-shrink: 0; }
+
+    .history-list { flex: 1; overflow-y: auto; }
+
+    .hist-item {
+      padding: 10px 18px;
+      border-bottom: 1px solid #f2f2f2;
+      cursor: default;
+    }
+    .hist-model {
+      font-size: 12px;
+      font-weight: bold;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .hist-msg {
+      font-size: 11px;
+      color: #777;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .hist-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #bbb;
+    }
+    .hist-empty { padding: 16px 18px; font-size: 12px; color: #bbb; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Requesty Chat</h1>
+  <a href="/logout">Sign out</a>
+</header>
+
+<div class="layout">
+
+  <!-- Chat panel -->
+  <div class="chat-panel">
+    <div class="toolbar">
+      <label for="model-sel">Model</label>
+      <select id="model-sel"><option value="">Loading…</option></select>
+      <button id="new-btn" onclick="newConversation()">New chat</button>
+    </div>
+    <div class="messages" id="messages">
+      <div class="empty-state" id="empty">Select a model and start typing.</div>
+    </div>
+    <div class="input-row">
+      <textarea id="input" placeholder="Type a message… (Enter to send, Shift+Enter for newline)"></textarea>
+      <button id="send-btn" onclick="send()">Send</button>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="balance-box">
+      <div class="section-label">Requesty Balance</div>
+      <div class="balance-primary" id="bal-primary">—</div>
+      <div class="balance-sub" id="bal-sub"></div>
+      <div class="balance-updated" id="bal-updated"></div>
+    </div>
+    <div class="history-box">
+      <div class="section-label">Session History</div>
+      <div class="history-list" id="hist-list">
+        <div class="hist-empty">No sessions yet.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── State ───────────────────────────────────────────────────────────────────
+  let conversation = [];   // [{role, content}]
+  let streaming = false;
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmt(n, dec) {
+    return parseFloat(n).toFixed(dec ?? 4);
+  }
+
+  // ── Render messages ──────────────────────────────────────────────────────────
+  function renderMessages() {
+    const el = document.getElementById('messages');
+    const empty = document.getElementById('empty');
+    if (conversation.length === 0) {
+      el.innerHTML = '';
+      el.appendChild(empty);
+      empty.style.display = 'flex';
+      return;
+    }
+    empty.style.display = 'none';
+    el.innerHTML = conversation.map(m => `
+      <div class="msg ${esc(m.role)}">
+        <div class="msg-role">${m.role === 'user' ? 'You' : 'Assistant'}</div>
+        <div class="msg-body">${esc(m.content)}</div>
+      </div>
+    `).join('');
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // ── Models ───────────────────────────────────────────────────────────────────
+  async function loadModels() {
+    try {
+      const r = await fetch('/api/models');
+      const d = await r.json();
+      const sel = document.getElementById('model-sel');
+      if (d.models && d.models.length) {
+        sel.innerHTML = d.models.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+      } else {
+        sel.innerHTML = '<option value="">No models found</option>';
+      }
+    } catch {
+      document.getElementById('model-sel').innerHTML = '<option value="">Error loading models</option>';
+    }
+  }
+
+  // ── Balance ──────────────────────────────────────────────────────────────────
+  async function loadBalance() {
+    const primary = document.getElementById('bal-primary');
+    const sub     = document.getElementById('bal-sub');
+    const updated = document.getElementById('bal-updated');
+    try {
+      const r = await fetch('/api/balance');
+      const d = await r.json();
+
+      if (d.error) {
+        primary.textContent = 'N/A';
+        sub.textContent = d.error.slice(0, 80);
+        sub.className = 'balance-err';
+      } else {
+        // Try common field names for balance
+        const balVal =
+          d.balance       ??
+          d.credits       ??
+          d.credit_balance ??
+          d.remaining     ??
+          d.remaining_credits;
+
+        const spentVal =
+          d.total_cost    ??
+          d.total_spent   ??
+          d.usage_cost    ??
+          d.spent;
+
+        if (balVal !== undefined && balVal !== null) {
+          primary.textContent = '$' + fmt(balVal, 4);
+        } else {
+          // Fallback: show raw JSON so user can see what comes back
+          primary.textContent = '—';
+          sub.textContent = JSON.stringify(d).slice(0, 100);
+        }
+
+        if (spentVal !== undefined && spentVal !== null) {
+          sub.className = 'balance-sub';
+          sub.textContent = 'Spent: $' + fmt(spentVal, 4);
+        }
+      }
+      updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      primary.textContent = 'Error';
+      updated.textContent = e.message;
+    }
+  }
+
+  // ── Session history ──────────────────────────────────────────────────────────
+  async function loadHistory() {
+    try {
+      const r = await fetch('/api/sessions');
+      const d = await r.json();
+      renderHistory(d.sessions || []);
+    } catch {}
+  }
+
+  function renderHistory(sessions) {
+    const el = document.getElementById('hist-list');
+    if (!sessions.length) {
+      el.innerHTML = '<div class="hist-empty">No sessions yet.</div>';
+      return;
+    }
+    el.innerHTML = sessions.map(s => {
+      const ts    = new Date(s.timestamp);
+      const date  = ts.toLocaleDateString([], {month:'short', day:'numeric'})
+                  + ' ' + ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const tok   = (s.prompt_tokens || 0) + (s.completion_tokens || 0);
+      const cost  = (s.total_cost != null)
+                    ? '$' + parseFloat(s.total_cost).toFixed(5)
+                    : '—';
+      return `
+        <div class="hist-item">
+          <div class="hist-model">${esc(s.model)}</div>
+          <div class="hist-msg">${esc(s.first_message || '—')}</div>
+          <div class="hist-meta">
+            <span>${tok.toLocaleString()} tokens</span>
+            <span>${cost}</span>
+          </div>
+          <div class="hist-meta" style="margin-top:2px">
+            <span>${date}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Chat ─────────────────────────────────────────────────────────────────────
+  function newConversation() {
+    if (streaming) return;
+    conversation = [];
+    renderMessages();
+    document.getElementById('input').focus();
+  }
+
+  async function send() {
+    if (streaming) return;
+    const input = document.getElementById('input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    const model = document.getElementById('model-sel').value;
+    if (!model) { alert('Please select a model first.'); return; }
+
+    input.value = '';
+    conversation.push({ role: 'user', content: text });
+
+    // Placeholder for assistant reply
+    const assistantIdx = conversation.length;
+    conversation.push({ role: 'assistant', content: '' });
+    renderMessages();
+
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    streaming = true;
+
+    let assistantText = '';
+
+    try {
+      const resp = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, messages: conversation.slice(0, -1) }),
+      });
+
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let   buffer  = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop();          // keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          let evt;
+          try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+          if (evt.type === 'content') {
+            assistantText += evt.text;
+            conversation[assistantIdx].content = assistantText;
+            renderMessages();
+          } else if (evt.type === 'done') {
+            await Promise.all([loadHistory(), loadBalance()]);
+          } else if (evt.type === 'error') {
+            conversation[assistantIdx].content = 'Error: ' + evt.message;
+            renderMessages();
+          }
+        }
+      }
+    } catch (e) {
+      conversation[assistantIdx].content = 'Connection error: ' + e.message;
+      renderMessages();
+    }
+
+    streaming = false;
+    btn.disabled = false;
+    input.focus();
+  }
+
+  document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  loadModels();
+  loadBalance();
+  loadHistory();
+  setInterval(loadBalance, 60_000);   // refresh balance every minute
+</script>
+</body>
+</html>
