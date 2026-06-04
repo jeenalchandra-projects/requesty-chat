@@ -197,7 +197,15 @@ async def api_chat_stream(request: Request):
             except Exception as exc:
                 yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # tell Railway/nginx not to buffer SSE
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.get("/api/sessions")

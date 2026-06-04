@@ -122,6 +122,10 @@
       background: #f4f4f4;
       padding: 10px 13px;
     }
+    .msg.assistant.thinking .msg-body {
+      color: #aaa;
+      font-style: italic;
+    }
 
     .input-row {
       display: flex;
@@ -308,12 +312,14 @@
       return;
     }
     empty.style.display = 'none';
-    el.innerHTML = conversation.map(m => `
-      <div class="msg ${esc(m.role)}">
-        <div class="msg-role">${m.role === 'user' ? 'You' : 'Assistant'}</div>
-        <div class="msg-body">${esc(m.content)}</div>
-      </div>
-    `).join('');
+    el.innerHTML = conversation.map((m, i) => {
+      const isThinking = m.role === 'assistant' && m.content === '' && i === conversation.length - 1 && streaming;
+      return `
+        <div class="msg ${esc(m.role)}${isThinking ? ' thinking' : ''}">
+          <div class="msg-role">${m.role === 'user' ? 'You' : 'Assistant'}</div>
+          <div class="msg-body">${isThinking ? 'Thinking…' : esc(m.content)}</div>
+        </div>`;
+    }).join('');
     el.scrollTop = el.scrollHeight;
   }
 
