@@ -41,7 +41,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 def _auth(request: Request) -> bool:
-    return bool(request.session.get("authenticated"))
+    return True  # auth temporarily disabled
 
 
 # ── Auth routes ────────────────────────────────────────────────────────────────
