@@ -6,231 +6,62 @@
   <title>Requesty Chat</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #fff; height: 100vh; display: flex; flex-direction: column; color: #111; }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #fff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      color: #111;
-    }
-
-    /* ── Header ─────────────────────────────────── */
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 11px 20px;
-      border-bottom: 1px solid #e0e0e0;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 20px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
     }
     header h1 { font-size: 15px; font-weight: bold; }
-    header a {
-      font-size: 12px;
-      color: #888;
-      text-decoration: none;
-    }
+    header a { font-size: 12px; color: #888; text-decoration: none; }
     header a:hover { color: #111; }
 
-    /* ── Layout ─────────────────────────────────── */
-    .layout {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .layout { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── Chat panel ─────────────────────────────── */
-    .chat-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-right: 1px solid #e0e0e0;
-    }
+    /* ── Chat panel ── */
+    .chat-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #e0e0e0; overflow: hidden; }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      border-bottom: 1px solid #e0e0e0;
-      flex-shrink: 0;
-    }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
     .toolbar label { font-size: 12px; color: #666; white-space: nowrap; }
-
-    select {
-      flex: 1;
-      max-width: 420px;
-      padding: 6px 9px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      background: #fff;
-      outline: none;
-      cursor: pointer;
-    }
+    select { flex: 1; max-width: 420px; padding: 6px 9px; font-family: Arial, sans-serif; font-size: 13px; border: 1px solid #ccc; background: #fff; outline: none; }
     select:focus { border-color: #111; }
+    .new-btn { padding: 6px 14px; font-family: Arial, sans-serif; font-size: 12px; background: #fff; border: 1px solid #ccc; cursor: pointer; color: #444; text-decoration: none; white-space: nowrap; }
+    .new-btn:hover { border-color: #111; color: #111; }
 
-    #new-btn {
-      padding: 6px 14px;
-      font-family: Arial, sans-serif;
-      font-size: 12px;
-      background: #fff;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      color: #444;
-      white-space: nowrap;
-    }
-    #new-btn:hover { border-color: #111; color: #111; }
-
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 20px 10px;
-    }
-
-    .empty-state {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      color: #bbb;
-    }
+    .messages { flex: 1; overflow-y: auto; padding: 20px; }
+    .empty { color: #bbb; font-size: 13px; text-align: center; padding-top: 60px; }
 
     .msg { margin-bottom: 22px; }
-    .msg-role {
-      font-size: 11px;
-      font-weight: bold;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-      color: #888;
-    }
+    .msg-role { font-size: 11px; font-weight: bold; letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 5px; color: #888; }
     .msg.user .msg-role { color: #111; }
-    .msg-body {
-      font-size: 14px;
-      line-height: 1.65;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .msg.user .msg-body {
-      display: inline-block;
-      max-width: 78%;
-      background: #f4f4f4;
-      padding: 10px 13px;
-    }
-    .msg.assistant.thinking .msg-body {
-      color: #aaa;
-      font-style: italic;
-    }
+    .msg-body { font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+    .msg.user .msg-body { display: inline-block; max-width: 78%; background: #f4f4f4; padding: 10px 13px; }
 
-    .input-row {
-      display: flex;
-      gap: 8px;
-      padding: 12px 16px;
-      border-top: 1px solid #e0e0e0;
-      flex-shrink: 0;
-    }
-    textarea {
-      flex: 1;
-      padding: 9px 11px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      resize: none;
-      outline: none;
-      line-height: 1.5;
-      height: 58px;
-    }
+    .error-bar { background: #fff0f0; border: 1px solid #fcc; color: #c00; font-size: 13px; padding: 10px 16px; flex-shrink: 0; }
+
+    form.input-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+    textarea { flex: 1; padding: 9px 11px; font-family: Arial, sans-serif; font-size: 14px; border: 1px solid #ccc; resize: none; outline: none; line-height: 1.5; height: 58px; }
     textarea:focus { border-color: #111; }
-    #send-btn {
-      padding: 0 18px;
-      background: #111;
-      color: #fff;
-      border: none;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    #send-btn:hover { background: #333; }
-    #send-btn:disabled { background: #aaa; cursor: not-allowed; }
+    .send-btn { padding: 0 18px; background: #111; color: #fff; border: none; font-family: Arial, sans-serif; font-size: 14px; cursor: pointer; }
+    .send-btn:hover { background: #333; }
 
-    /* ── Sidebar ─────────────────────────────────── */
-    .sidebar {
-      width: 270px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    /* ── Sidebar ── */
+    .sidebar { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden; }
 
-    .balance-box {
-      padding: 18px 18px 16px;
-      border-bottom: 1px solid #e0e0e0;
-      flex-shrink: 0;
-    }
-    .section-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: #aaa;
-      margin-bottom: 8px;
-    }
-    .balance-primary {
-      font-size: 24px;
-      font-weight: bold;
-      color: #111;
-      line-height: 1;
-    }
-    .balance-sub {
-      margin-top: 5px;
-      font-size: 12px;
-      color: #888;
-    }
-    .balance-err { font-size: 12px; color: #c00; margin-top: 4px; }
-    .balance-updated { font-size: 11px; color: #bbb; margin-top: 6px; }
+    .balance-box { padding: 18px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+    .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: #aaa; margin-bottom: 8px; }
+    .balance-primary { font-size: 24px; font-weight: bold; color: #111; }
+    .balance-sub { font-size: 12px; color: #888; margin-top: 4px; }
+    .dashboard-link { font-size: 11px; color: #888; text-decoration: none; border-bottom: 1px solid #ddd; margin-top: 10px; display: inline-block; }
+    .dashboard-link:hover { color: #111; }
 
-    .history-box {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    .history-box { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
     .history-box .section-label { padding: 14px 18px 4px; flex-shrink: 0; }
-
     .history-list { flex: 1; overflow-y: auto; }
-
-    .hist-item {
-      padding: 10px 18px;
-      border-bottom: 1px solid #f2f2f2;
-      cursor: default;
-    }
-    .hist-model {
-      font-size: 12px;
-      font-weight: bold;
-      color: #111;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 2px;
-    }
-    .hist-msg {
-      font-size: 11px;
-      color: #777;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 4px;
-    }
-    .hist-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #bbb;
-    }
+    .hist-item { padding: 10px 18px; border-bottom: 1px solid #f2f2f2; }
+    .hist-model { font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .hist-msg { font-size: 11px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .hist-meta { display: flex; justify-content: space-between; font-size: 11px; color: #bbb; }
     .hist-empty { padding: 16px 18px; font-size: 12px; color: #bbb; }
   </style>
 </head>
@@ -245,217 +76,82 @@
 
   <!-- Chat panel -->
   <div class="chat-panel">
-    <div class="toolbar">
-      <label for="model-sel">Model</label>
-      <select id="model-sel"><option value="">Loading…</option></select>
-      <button id="new-btn" onclick="newConversation()">New chat</button>
-    </div>
-    <div class="messages" id="messages">
-      <div class="empty-state" id="empty">Select a model and start typing.</div>
-    </div>
-    <div class="input-row">
-      <textarea id="input" placeholder="Type a message… (Enter to send, Shift+Enter for newline)"></textarea>
-      <button id="send-btn" onclick="send()">Send</button>
-    </div>
+
+    <!-- Model selector + new chat (inside the form so model is submitted) -->
+    <form class="input-form" method="post" action="/chat" style="flex-direction:column; gap:0; padding:0; border:none;">
+      <input type="hidden" name="history" value="{{ history_b64 | default('W10=') }}">
+
+      <div class="toolbar">
+        <label for="model-sel">Model</label>
+        <select id="model-sel" name="model">
+          {% for m in models %}
+            <option value="{{ m }}" {% if m == selected_model %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+          {% if not models %}
+            <option value="">No models loaded</option>
+          {% endif %}
+        </select>
+        <a class="new-btn" href="/chat">New chat</a>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages">
+        {% if not conversation %}
+          <div class="empty">Select a model and start typing.</div>
+        {% else %}
+          {% for msg in conversation %}
+            <div class="msg {{ msg.role }}">
+              <div class="msg-role">{{ 'You' if msg.role == 'user' else 'Assistant' }}</div>
+              <div class="msg-body">{{ msg.content }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      {% if error %}
+        <div class="error-bar">{{ error }}</div>
+      {% endif %}
+
+      <!-- Input row -->
+      <div class="input-form" style="border-top: 1px solid #e0e0e0; padding: 12px 16px;">
+        <textarea name="message" placeholder="Type a message and click Send" autofocus></textarea>
+        <button type="submit" class="send-btn">Send</button>
+      </div>
+
+    </form>
   </div>
 
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="balance-box">
-      <div class="section-label">Spent this session log</div>
-      <div class="balance-primary" id="bal-primary">—</div>
-      <div class="balance-sub" id="bal-sub">tracked from session history</div>
-      <div class="balance-updated" id="bal-updated"></div>
-      <div style="margin-top:10px">
-        <a href="https://app.requesty.ai" target="_blank"
-           style="font-size:11px;color:#888;text-decoration:none;border-bottom:1px solid #ddd;">
-          View balance on Requesty ↗
-        </a>
-      </div>
+      <div class="section-label">Total spent (this log)</div>
+      <div class="balance-primary">${{ "%.5f"|format(local_spend) }}</div>
+      <div class="balance-sub">from {{ sessions|length }} session(s)</div>
+      <a class="dashboard-link" href="https://app.requesty.ai" target="_blank">View balance on Requesty ↗</a>
     </div>
+
     <div class="history-box">
       <div class="section-label">Session History</div>
-      <div class="history-list" id="hist-list">
-        <div class="hist-empty">No sessions yet.</div>
+      <div class="history-list">
+        {% if sessions %}
+          {% for s in sessions %}
+            <div class="hist-item">
+              <div class="hist-model">{{ s.model }}</div>
+              <div class="hist-msg">{{ s.first_message or '—' }}</div>
+              <div class="hist-meta">
+                <span>{{ (s.prompt_tokens or 0) + (s.completion_tokens or 0) }} tokens</span>
+                <span>{% if s.total_cost is not none %}${{ "%.5f"|format(s.total_cost) }}{% else %}—{% endif %}</span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="hist-empty">No sessions yet.</div>
+        {% endif %}
       </div>
     </div>
   </div>
 
 </div>
 
-<script>
-  // ── State ───────────────────────────────────────────────────────────────────
-  let conversation = [];   // [{role, content}]
-  let streaming = false;
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-  function esc(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function fmt(n, dec) {
-    return parseFloat(n).toFixed(dec ?? 4);
-  }
-
-  // ── Render messages ──────────────────────────────────────────────────────────
-  function renderMessages() {
-    const el = document.getElementById('messages');
-    const empty = document.getElementById('empty');
-    if (conversation.length === 0) {
-      el.innerHTML = '';
-      el.appendChild(empty);
-      empty.style.display = 'flex';
-      return;
-    }
-    empty.style.display = 'none';
-    el.innerHTML = conversation.map((m, i) => {
-      const isThinking = m.role === 'assistant' && m.content === '' && i === conversation.length - 1 && streaming;
-      return `
-        <div class="msg ${esc(m.role)}${isThinking ? ' thinking' : ''}">
-          <div class="msg-role">${m.role === 'user' ? 'You' : 'Assistant'}</div>
-          <div class="msg-body">${isThinking ? 'Thinking…' : esc(m.content)}</div>
-        </div>`;
-    }).join('');
-    el.scrollTop = el.scrollHeight;
-  }
-
-  // ── Models ───────────────────────────────────────────────────────────────────
-  async function loadModels() {
-    try {
-      const r = await fetch('/api/models');
-      const d = await r.json();
-      const sel = document.getElementById('model-sel');
-      if (d.models && d.models.length) {
-        sel.innerHTML = d.models.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-      } else {
-        sel.innerHTML = '<option value="">No models found</option>';
-      }
-    } catch {
-      document.getElementById('model-sel').innerHTML = '<option value="">Error loading models</option>';
-    }
-  }
-
-  // ── Balance ──────────────────────────────────────────────────────────────────
-  async function loadBalance() {
-    const primary = document.getElementById('bal-primary');
-    const sub     = document.getElementById('bal-sub');
-    const updated = document.getElementById('bal-updated');
-    try {
-      const r = await fetch('/api/balance');
-      const d = await r.json();
-
-      primary.textContent = '$' + fmt(d.local_spend ?? 0, 5);
-      updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
-    } catch (e) {
-      primary.textContent = 'Error';
-      updated.textContent = e.message;
-    }
-  }
-
-  // ── Session history ──────────────────────────────────────────────────────────
-  async function loadHistory() {
-    try {
-      const r = await fetch('/api/sessions');
-      const d = await r.json();
-      renderHistory(d.sessions || []);
-    } catch {}
-  }
-
-  function renderHistory(sessions) {
-    const el = document.getElementById('hist-list');
-    if (!sessions.length) {
-      el.innerHTML = '<div class="hist-empty">No sessions yet.</div>';
-      return;
-    }
-    el.innerHTML = sessions.map(s => {
-      const ts    = new Date(s.timestamp);
-      const date  = ts.toLocaleDateString([], {month:'short', day:'numeric'})
-                  + ' ' + ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-      const tok   = (s.prompt_tokens || 0) + (s.completion_tokens || 0);
-      const cost  = (s.total_cost != null)
-                    ? '$' + parseFloat(s.total_cost).toFixed(5)
-                    : '—';
-      return `
-        <div class="hist-item">
-          <div class="hist-model">${esc(s.model)}</div>
-          <div class="hist-msg">${esc(s.first_message || '—')}</div>
-          <div class="hist-meta">
-            <span>${tok.toLocaleString()} tokens</span>
-            <span>${cost}</span>
-          </div>
-          <div class="hist-meta" style="margin-top:2px">
-            <span>${date}</span>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  // ── Chat ─────────────────────────────────────────────────────────────────────
-  function newConversation() {
-    if (streaming) return;
-    conversation = [];
-    renderMessages();
-    document.getElementById('input').focus();
-  }
-
-  async function send() {
-    if (streaming) return;
-    const input = document.getElementById('input');
-    const text  = input.value.trim();
-    if (!text) return;
-
-    const model = document.getElementById('model-sel').value;
-    if (!model) { alert('Please select a model first.'); return; }
-
-    input.value = '';
-    conversation.push({ role: 'user', content: text });
-
-    // Placeholder while waiting
-    const assistantIdx = conversation.length;
-    conversation.push({ role: 'assistant', content: '' });
-    renderMessages();
-
-    const btn = document.getElementById('send-btn');
-    btn.disabled = true;
-    streaming = true;
-
-    try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, messages: conversation.slice(0, -1) }),
-      });
-      const data = await resp.json();
-
-      if (data.error) {
-        conversation[assistantIdx].content = 'Error: ' + data.error;
-      } else {
-        conversation[assistantIdx].content = data.reply;
-        await Promise.all([loadHistory(), loadBalance()]);
-      }
-    } catch (e) {
-      conversation[assistantIdx].content = 'Connection error: ' + e.message;
-    }
-
-    renderMessages();
-    streaming = false;
-    btn.disabled = false;
-    input.focus();
-  }
-
-  document.getElementById('input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-  });
-
-  // ── Init ──────────────────────────────────────────────────────────────────────
-  loadModels();
-  loadBalance();
-  loadHistory();
-  setInterval(loadBalance, 60_000);   // refresh balance every minute
-</script>
 </body>
 </html>

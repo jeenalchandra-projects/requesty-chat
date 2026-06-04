@@ -80,7 +80,90 @@ async def logout(request: Request):
 async def chat_page(request: Request):
     if not _auth(request):
         return RedirectResponse("/login")
-    return templates.TemplateResponse(request=request, name="chat.html", context={})
+    # Fetch models for the dropdown
+    models = []
+    async with httpx.AsyncClient() as client:
+        try:
+            r = await client.get(
+                f"{REQUESTY_ROUTER}/models",
+                headers={"Authorization": f"Bearer {REQUESTY_API_KEY}"},
+                timeout=15.0,
+            )
+            models = sorted([m["id"] for m in r.json().get("data", [])])
+        except Exception:
+            pass
+    sessions = get_sessions(limit=30)
+    local_spend = round(sum(s["total_cost"] or 0 for s in sessions), 6)
+    return templates.TemplateResponse(
+        request=request, name="chat.html",
+        context={"models": models, "sessions": sessions, "local_spend": local_spend,
+                 "conversation": [], "error": ""}
+    )
+
+
+@app.post("/chat", response_class=HTMLResponse)
+async def chat_submit(request: Request, model: str = Form(""), message: str = Form(""),
+                      history: str = Form("[]")):
+    if not _auth(request):
+        return RedirectResponse("/login")
+
+    import base64
+    try:
+        conversation = json.loads(base64.b64decode(history).decode())
+    except Exception:
+        conversation = []
+
+    reply = ""
+    error = ""
+    if message.strip() and model:
+        conversation.append({"role": "user", "content": message.strip()})
+        async with httpx.AsyncClient() as client:
+            try:
+                r = await client.post(
+                    f"{REQUESTY_ROUTER}/chat/completions",
+                    headers={"Authorization": f"Bearer {REQUESTY_API_KEY}",
+                             "Content-Type": "application/json"},
+                    json={"model": model, "messages": conversation, "stream": False},
+                    timeout=120.0,
+                )
+                r.raise_for_status()
+                data = r.json()
+                reply = data["choices"][0]["message"]["content"]
+                conversation.append({"role": "assistant", "content": reply})
+                usage = data.get("usage", {})
+                save_session(
+                    model=model,
+                    prompt_tokens=usage.get("prompt_tokens", 0),
+                    completion_tokens=usage.get("completion_tokens", 0),
+                    total_cost=usage.get("total_cost") or usage.get("cost"),
+                    first_message=message.strip()[:120],
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                )
+            except Exception as exc:
+                error = str(exc)
+                conversation.pop()  # remove user message if call failed
+
+    # Fetch models and sessions for re-render
+    models = []
+    async with httpx.AsyncClient() as client:
+        try:
+            r = await client.get(
+                f"{REQUESTY_ROUTER}/models",
+                headers={"Authorization": f"Bearer {REQUESTY_API_KEY}"},
+                timeout=15.0,
+            )
+            models = sorted([m["id"] for m in r.json().get("data", [])])
+        except Exception:
+            pass
+    sessions = get_sessions(limit=30)
+    local_spend = round(sum(s["total_cost"] or 0 for s in sessions), 6)
+    history_b64 = base64.b64encode(json.dumps(conversation).encode()).decode()
+    return templates.TemplateResponse(
+        request=request, name="chat.html",
+        context={"models": models, "sessions": sessions, "local_spend": local_spend,
+                 "conversation": conversation, "error": error,
+                 "selected_model": model, "history_b64": history_b64}
+    )
 
 
 # ── API ────────────────────────────────────────────────────────────────────────
