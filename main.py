@@ -52,7 +52,7 @@ async def root(request: Request):
 async def login_page(request: Request):
     if _auth(request):
         return RedirectResponse("/chat")
-    return templates.TemplateResponse("login.html", {"request": request, "error": ""})
+    return templates.TemplateResponse(request=request, name="login.html", context={"error": ""})
 
 
 @app.post("/login", response_class=HTMLResponse)
@@ -61,7 +61,7 @@ async def login_submit(request: Request, password: str = Form(...)):
         request.session["authenticated"] = True
         return RedirectResponse("/chat", status_code=303)
     return templates.TemplateResponse(
-        "login.html", {"request": request, "error": "Incorrect password"}
+        request=request, name="login.html", context={"error": "Incorrect password"}
     )
 
 
@@ -77,7 +77,7 @@ async def logout(request: Request):
 async def chat_page(request: Request):
     if not _auth(request):
         return RedirectResponse("/login")
-    return templates.TemplateResponse("chat.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="chat.html", context={})
 
 
 # ── API ────────────────────────────────────────────────────────────────────────
