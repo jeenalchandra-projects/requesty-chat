@@ -108,6 +108,9 @@ async def api_models(request: Request):
 async def api_balance(request: Request):
     if not _auth(request):
         raise HTTPException(401)
+
+    # Try to get live balance from Requesty management API.
+    # Requires "manage" permission on the API key (Settings → API Keys → Edit → enable Manage).
     async with httpx.AsyncClient() as client:
         try:
             r = await client.get(
@@ -115,10 +118,16 @@ async def api_balance(request: Request):
                 headers={"Authorization": f"Bearer {REQUESTY_API_KEY}"},
                 timeout=10.0,
             )
-            r.raise_for_status()
-            return r.json()   # contains { name, balance }
-        except Exception as exc:
-            return {"error": str(exc)}
+            if r.status_code == 200:
+                return r.json()   # { name, balance }
+            # 403 → key lacks manage permission; fall through to local fallback
+        except Exception:
+            pass
+
+    # Fallback: sum costs from local session log
+    sessions = get_sessions(limit=10000)
+    local_spend = sum(s["total_cost"] or 0 for s in sessions)
+    return {"balance": None, "local_spend": local_spend, "needs_manage_permission": True}
 
 
 @app.post("/api/chat/stream")

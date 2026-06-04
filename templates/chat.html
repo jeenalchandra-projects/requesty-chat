@@ -336,37 +336,23 @@
       const r = await fetch('/api/balance');
       const d = await r.json();
 
-      if (d.error) {
+      if (d.needs_manage_permission) {
+        // API key lacks manage permission — show local spend as fallback
         primary.textContent = 'N/A';
-        sub.textContent = d.error.slice(0, 80);
-        sub.className = 'balance-err';
-      } else {
-        // Try common field names for balance
-        const balVal =
-          d.balance       ??
-          d.credits       ??
-          d.credit_balance ??
-          d.remaining     ??
-          d.remaining_credits;
-
-        const spentVal =
-          d.total_cost    ??
-          d.total_spent   ??
-          d.usage_cost    ??
-          d.spent;
-
-        if (balVal !== undefined && balVal !== null) {
-          primary.textContent = '$' + fmt(balVal, 4);
-        } else {
-          // Fallback: show raw JSON so user can see what comes back
-          primary.textContent = '—';
-          sub.textContent = JSON.stringify(d).slice(0, 100);
-        }
-
-        if (spentVal !== undefined && spentVal !== null) {
+        sub.className = 'balance-sub';
+        sub.textContent = d.local_spend > 0
+          ? 'Local spend tracked: $' + fmt(d.local_spend, 5)
+          : 'Enable "Manage" permission\non your Requesty API key\nto see live balance.';
+      } else if (d.balance !== undefined && d.balance !== null) {
+        primary.textContent = '$' + fmt(d.balance, 4);
+        if (d.name) {
           sub.className = 'balance-sub';
-          sub.textContent = 'Spent: $' + fmt(spentVal, 4);
+          sub.textContent = d.name;
         }
+      } else {
+        primary.textContent = 'N/A';
+        sub.className = 'balance-err';
+        sub.textContent = (d.error || '').slice(0, 80);
       }
       updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (e) {
