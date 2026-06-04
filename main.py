@@ -114,8 +114,8 @@ async def api_balance(request: Request):
     return {"local_spend": round(local_spend, 6)}
 
 
-@app.post("/api/chat/stream")
-async def api_chat_stream(request: Request):
+@app.post("/api/chat")
+async def api_chat(request: Request):
     if not _auth(request):
         raise HTTPException(401)
 
@@ -123,89 +123,45 @@ async def api_chat_stream(request: Request):
     model: str = body.get("model", "")
     messages: list = body.get("messages", [])
 
-    async def event_stream():
-        prompt_tokens = 0
-        completion_tokens = 0
-        total_cost: Optional[float] = None
+    async with httpx.AsyncClient() as client:
+        try:
+            r = await client.post(
+                f"{REQUESTY_ROUTER}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {REQUESTY_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={"model": model, "messages": messages, "stream": False},
+                timeout=120.0,
+            )
+            r.raise_for_status()
+            data = r.json()
 
-        async with httpx.AsyncClient() as client:
-            try:
-                async with client.stream(
-                    "POST",
-                    f"{REQUESTY_ROUTER}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {REQUESTY_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "stream": True,
-                        "stream_options": {"include_usage": True},
-                    },
-                    timeout=120.0,
-                ) as resp:
-                    async for line in resp.aiter_lines():
-                        if not line.startswith("data: "):
-                            continue
-                        payload = line[6:]
-                        if payload == "[DONE]":
-                            break
-                        try:
-                            chunk = json.loads(payload)
-                        except json.JSONDecodeError:
-                            continue
+            reply = data["choices"][0]["message"]["content"]
+            usage = data.get("usage", {})
+            prompt_tokens = usage.get("prompt_tokens", 0)
+            completion_tokens = usage.get("completion_tokens", 0)
+            total_cost = usage.get("total_cost") or usage.get("cost")
 
-                        usage = chunk.get("usage")
-                        if usage:
-                            prompt_tokens = usage.get("prompt_tokens", prompt_tokens)
-                            completion_tokens = usage.get(
-                                "completion_tokens", completion_tokens
-                            )
-                            total_cost = (
-                                usage.get("total_cost")
-                                or usage.get("cost")
-                                or total_cost
-                            )
-
-                        choices = chunk.get("choices") or []
-                        if choices:
-                            content = (choices[0].get("delta") or {}).get("content")
-                            if content:
-                                yield f"data: {json.dumps({'type': 'content', 'text': content})}\n\n"
-
-                first_user = next(
-                    (m["content"] for m in reversed(messages) if m["role"] == "user"),
-                    "",
-                )
-                save_session(
-                    model=model,
-                    prompt_tokens=prompt_tokens,
-                    completion_tokens=completion_tokens,
-                    total_cost=total_cost,
-                    first_message=str(first_user)[:120],
-                    timestamp=datetime.now(timezone.utc).isoformat(),
-                )
-                done_payload = json.dumps({
-                    "type": "done",
-                    "prompt_tokens": prompt_tokens,
-                    "completion_tokens": completion_tokens,
-                    "cost": total_cost,
-                })
-                yield f"data: {done_payload}\n\n"
-
-            except Exception as exc:
-                yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
-
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",   # tell Railway/nginx not to buffer SSE
-            "Connection": "keep-alive",
-        },
-    )
+            first_user = next(
+                (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
+            )
+            save_session(
+                model=model,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_cost=total_cost,
+                first_message=str(first_user)[:120],
+                timestamp=datetime.now(timezone.utc).isoformat(),
+            )
+            return {
+                "reply": reply,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "cost": total_cost,
+            }
+        except Exception as exc:
+            return {"error": str(exc)}
 
 
 @app.get("/api/sessions")

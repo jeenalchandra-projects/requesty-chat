@@ -414,7 +414,7 @@
     input.value = '';
     conversation.push({ role: 'user', content: text });
 
-    // Placeholder for assistant reply
+    // Placeholder while waiting
     const assistantIdx = conversation.length;
     conversation.push({ role: 'assistant', content: '' });
     renderMessages();
@@ -423,49 +423,25 @@
     btn.disabled = true;
     streaming = true;
 
-    let assistantText = '';
-
     try {
-      const resp = await fetch('/api/chat/stream', {
+      const resp = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, messages: conversation.slice(0, -1) }),
       });
+      const data = await resp.json();
 
-      const reader  = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let   buffer  = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split('\n');
-        buffer = lines.pop();          // keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          let evt;
-          try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-
-          if (evt.type === 'content') {
-            assistantText += evt.text;
-            conversation[assistantIdx].content = assistantText;
-            renderMessages();
-          } else if (evt.type === 'done') {
-            await Promise.all([loadHistory(), loadBalance()]);
-          } else if (evt.type === 'error') {
-            conversation[assistantIdx].content = 'Error: ' + evt.message;
-            renderMessages();
-          }
-        }
+      if (data.error) {
+        conversation[assistantIdx].content = 'Error: ' + data.error;
+      } else {
+        conversation[assistantIdx].content = data.reply;
+        await Promise.all([loadHistory(), loadBalance()]);
       }
     } catch (e) {
       conversation[assistantIdx].content = 'Connection error: ' + e.message;
-      renderMessages();
     }
 
+    renderMessages();
     streaming = false;
     btn.disabled = false;
     input.focus();
