@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import secrets
@@ -17,9 +18,11 @@ REQUESTY_API_KEY: str = os.getenv("REQUESTY_API_KEY", "")
 REQUESTY_ROUTER: str = "https://router.requesty.ai/v1"
 REQUESTY_MGMT: str = "https://api-v2.requesty.ai/v1"
 CHAT_PASSWORD: str = os.getenv("CHAT_PASSWORD", "")
-SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_hex(32))
-# On Railway RAILWAY_ENVIRONMENT is always set; use secure cookies there.
-ON_RAILWAY: bool = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
+# Stable secret key: explicit env var wins; otherwise derive from CHAT_PASSWORD
+# so the key survives server restarts without requiring a separate env var.
+_raw_secret = os.getenv("SECRET_KEY") or CHAT_PASSWORD or secrets.token_hex(32)
+SECRET_KEY: str = hashlib.sha256(_raw_secret.encode()).hexdigest()
 
 
 @asynccontextmanager
@@ -32,7 +35,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET_KEY,
-    https_only=ON_RAILWAY,
+    https_only=False,   # Railway terminates TLS at the edge; Secure flag not needed
 )
 templates = Jinja2Templates(directory="templates")
 

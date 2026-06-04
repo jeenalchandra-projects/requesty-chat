@@ -28,7 +28,7 @@
       background: #fff;
     }
     input[type="password"]:focus { border-color: #111; }
-    button {
+    #btn {
       width: 100%;
       margin-top: 14px;
       padding: 10px;
@@ -39,19 +39,74 @@
       font-size: 14px;
       cursor: pointer;
     }
-    button:hover { background: #333; }
-    .error { margin-top: 12px; font-size: 13px; color: #c00; }
+    #btn:hover:not(:disabled) { background: #333; }
+    #btn:disabled { background: #888; cursor: not-allowed; }
+    #msg { margin-top: 12px; font-size: 13px; }
+    #msg.error { color: #c00; }
+    #msg.info  { color: #666; }
   </style>
 </head>
 <body>
   <div class="box">
     <h1>Requesty Chat</h1>
-    <form method="post" action="/login">
-      <label for="pw">Password</label>
-      <input type="password" id="pw" name="password" autofocus required>
-      <button type="submit">Sign in</button>
-      {% if error %}<p class="error">{{ error }}</p>{% endif %}
-    </form>
+    <label for="pw">Password</label>
+    <input type="password" id="pw" autofocus placeholder="Enter password">
+    <button id="btn" onclick="login()">Sign in</button>
+    <p id="msg"></p>
   </div>
+
+  <script>
+    const pw  = document.getElementById('pw');
+    const btn = document.getElementById('btn');
+    const msg = document.getElementById('msg');
+
+    async function login() {
+      const password = pw.value;
+      if (!password) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+      msg.textContent = '';
+      msg.className = '';
+
+      try {
+        const resp = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'password=' + encodeURIComponent(password),
+          redirect: 'manual',   // handle redirect ourselves
+        });
+
+        if (resp.status === 303 || resp.status === 200) {
+          // 303 = successful login redirect, 200 = also accepted
+          const location = resp.headers.get('location');
+          if (location) {
+            window.location.href = location;
+          } else {
+            window.location.href = '/chat';
+          }
+        } else {
+          // Show error returned by server
+          const text = await resp.text();
+          const match = text.match(/class="error"[^>]*>([^<]+)</);
+          msg.textContent = match ? match[1] : 'Incorrect password';
+          msg.className = 'error';
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+          pw.focus();
+          pw.select();
+        }
+      } catch (e) {
+        msg.textContent = 'Network error: ' + e.message;
+        msg.className = 'error';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      }
+    }
+
+    pw.addEventListener('keydown', e => {
+      if (e.key === 'Enter') login();
+    });
+  </script>
 </body>
 </html>
