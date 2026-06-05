@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Requesty Chat — Login</title>
+  <title>mond.ai</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -16,7 +16,8 @@
       color: #111;
     }
     .box { width: 300px; }
-    h1 { font-size: 18px; font-weight: bold; margin-bottom: 32px; }
+    body { background: #F2EFE9; }
+    h1 { font-size: 18px; font-weight: bold; margin-bottom: 32px; display: flex; align-items: center; gap: 9px; }
     label { display: block; font-size: 12px; color: #666; margin-bottom: 6px; }
     input[type="password"] {
       width: 100%;
@@ -48,7 +49,13 @@
 </head>
 <body>
   <div class="box">
-    <h1>Requesty Chat</h1>
+    <h1>
+      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+        <circle cx="13" cy="13" r="11" fill="#1A1816"/>
+        <circle cx="17.5" cy="9.5" r="8.5" fill="#F2EFE9"/>
+      </svg>
+      mond<span style="color:#8C7B6B">.ai</span>
+    </h1>
     <label for="pw">Password</label>
     <input type="password" id="pw" autofocus placeholder="Enter password">
     <button id="btn" onclick="login()">Sign in</button>
