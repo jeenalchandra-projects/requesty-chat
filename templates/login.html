@@ -5,115 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>mond.ai</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
-      background: #fff;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #111;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(180deg, #1C2E50 0%, #07101F 55%, #0E1E35 100%);
+      background-attachment: fixed;
+      color: #DFD9CF;
     }
-    .box { width: 300px; }
-    body { background: #F2EFE9; }
-    h1 { font-size: 18px; font-weight: bold; margin-bottom: 32px; display: flex; align-items: center; gap: 9px; }
-    label { display: block; font-size: 12px; color: #666; margin-bottom: 6px; }
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .box {
+      position: relative; z-index: 1;
+      width: 300px;
+      background: rgba(10, 16, 30, 0.82);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 36px 32px 32px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 32px; }
+    .logo-name { font-size: 18px; font-weight: bold; letter-spacing: -0.3px; color: #E8E4DC; }
+    .logo-name span { color: #7A9CC9; }
+    label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; color: #4E5A6E; margin-bottom: 7px; }
     input[type="password"] {
-      width: 100%;
-      padding: 9px 11px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      outline: none;
-      background: #fff;
+      width: 100%; padding: 10px 13px;
+      font-family: Arial, sans-serif; font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+      outline: none; background: rgba(255,255,255,0.05); color: #DFD9CF;
     }
-    input[type="password"]:focus { border-color: #111; }
+    input[type="password"]::placeholder { color: #4E5A6E; }
+    input[type="password"]:focus { border-color: #7A9CC9; }
     #btn {
-      width: 100%;
-      margin-top: 14px;
-      padding: 10px;
-      background: #111;
-      color: #fff;
-      border: none;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      cursor: pointer;
+      width: 100%; margin-top: 16px; padding: 11px;
+      background: #2459A8; color: #EEF2FA; border: none;
+      border-radius: 8px; font-family: Arial, sans-serif;
+      font-size: 14px; cursor: pointer;
     }
-    #btn:hover:not(:disabled) { background: #333; }
-    #btn:disabled { background: #888; cursor: not-allowed; }
-    #msg { margin-top: 12px; font-size: 13px; }
-    #msg.error { color: #c00; }
-    #msg.info  { color: #666; }
+    #btn:hover:not(:disabled) { background: #2F69BF; }
+    #btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #msg { margin-top: 12px; font-size: 12px; min-height: 18px; }
+    #msg.error { color: #E07070; }
+    #msg.info  { color: #8A95A8; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>
-      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
-        <circle cx="13" cy="13" r="11" fill="#1A1816"/>
-        <circle cx="17.5" cy="9.5" r="8.5" fill="#F2EFE9"/>
-      </svg>
-      mond<span style="color:#8C7B6B">.ai</span>
-    </h1>
-    <label for="pw">Password</label>
-    <input type="password" id="pw" autofocus placeholder="Enter password">
-    <button id="btn" onclick="login()">Sign in</button>
-    <p id="msg"></p>
+<div id="stars"></div>
+<div class="box">
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+      <circle cx="13" cy="13" r="11" fill="#DFD9CF"/>
+      <circle cx="17.5" cy="9.5" r="8.5" fill="#0C1526"/>
+    </svg>
+    <span class="logo-name">mond<span>.ai</span></span>
   </div>
+  <label for="pw">Password</label>
+  <input type="password" id="pw" placeholder="Enter password" autofocus>
+  <button id="btn" onclick="login()">Sign in</button>
+  <p id="msg"></p>
+</div>
 
-  <script>
-    const pw  = document.getElementById('pw');
-    const btn = document.getElementById('btn');
-    const msg = document.getElementById('msg');
+<style>
+@keyframes twinkle {
+  from { opacity: 0.15; transform: scale(0.85); }
+  to   { opacity: 1;    transform: scale(1.15); }
+}
+</style>
+<script>
+// Stars
+(function(){
+  var c=document.getElementById('stars');
+  for(var i=0;i<140;i++){
+    var size=Math.random()<0.65?1:Math.random()<0.8?1.5:2;
+    var s=document.createElement('div');
+    s.style.cssText='position:absolute;border-radius:50%;width:'+size+'px;height:'+size+'px;' +
+      'left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;' +
+      'background:rgba(255,255,255,'+(0.25+Math.random()*0.75).toFixed(2)+');';
+    if(Math.random()>0.55) s.style.animation='twinkle '+(2+Math.random()*5).toFixed(1)+'s '+(Math.random()*8).toFixed(1)+'s infinite ease-in-out alternate';
+    c.appendChild(s);
+  }
+})();
 
-    async function login() {
-      const password = pw.value;
-      if (!password) return;
-
-      btn.disabled = true;
-      btn.textContent = 'Signing in…';
-      msg.textContent = '';
-      msg.className = '';
-
-      try {
-        const resp = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'password=' + encodeURIComponent(password),
-          redirect: 'manual',   // handle redirect ourselves
-        });
-
-        if (resp.status === 303 || resp.status === 200) {
-          // 303 = successful login redirect, 200 = also accepted
-          const location = resp.headers.get('location');
-          if (location) {
-            window.location.href = location;
-          } else {
-            window.location.href = '/chat';
-          }
-        } else {
-          // Show error returned by server
-          const text = await resp.text();
-          const match = text.match(/class="error"[^>]*>([^<]+)</);
-          msg.textContent = match ? match[1] : 'Incorrect password';
-          msg.className = 'error';
-          btn.disabled = false;
-          btn.textContent = 'Sign in';
-          pw.focus();
-          pw.select();
-        }
-      } catch (e) {
-        msg.textContent = 'Network error: ' + e.message;
-        msg.className = 'error';
-        btn.disabled = false;
-        btn.textContent = 'Sign in';
-      }
+var pw=document.getElementById('pw'), btn=document.getElementById('btn'), msg=document.getElementById('msg');
+async function login(){
+  if(!pw.value.trim()) return;
+  btn.disabled=true; btn.textContent='Signing in…'; msg.textContent=''; msg.className='';
+  try {
+    var r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'password='+encodeURIComponent(pw.value),redirect:'manual'});
+    if(r.status===303||r.status===200){
+      var loc=r.headers.get('location');
+      window.location.href=loc||'/chat';
+    } else {
+      msg.textContent='Incorrect password'; msg.className='error';
+      btn.disabled=false; btn.textContent='Sign in'; pw.focus(); pw.select();
     }
-
-    pw.addEventListener('keydown', e => {
-      if (e.key === 'Enter') login();
-    });
-  </script>
+  } catch(e) {
+    msg.textContent='Network error'; msg.className='error';
+    btn.disabled=false; btn.textContent='Sign in';
+  }
+}
+pw.addEventListener('keydown',function(e){ if(e.key==='Enter') login(); });
+</script>
 </body>
 </html>
