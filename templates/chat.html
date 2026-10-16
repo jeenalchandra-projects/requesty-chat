@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>zora</title>
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <style>
@@ -148,6 +148,70 @@
     .btn-cancel:hover{border-color:var(--ink-3);}
 
     ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+    /* ── Phone-only controls (hidden on desktop) ── */
+    .menu-btn,.sidebar-backdrop,.sidebar-close,.sidebar-signout{display:none;}
+
+    /* ── Phones ── */
+    @media (max-width:760px){
+      /* dvh follows the visible area, so the input isn't hidden behind the browser bar */
+      .app{height:100vh;height:100dvh;}
+
+      .topbar{grid-template-columns:1fr auto;grid-template-areas:"logo actions" "picker picker";height:auto;padding:8px 12px 10px;padding-top:calc(8px + env(safe-area-inset-top));row-gap:8px;}
+      .logo{grid-area:logo;}
+      .logo img{width:26px;height:26px;}
+      .logo-name{font-size:18px;}
+      .topbar-left{grid-area:picker;}
+      .topbar-right{grid-area:actions;gap:8px;}
+      .signout{display:none;}
+      .btn-ghost{padding:9px 14px;font-size:13px;}
+      .menu-btn{display:flex;align-items:center;justify-content:center;width:40px;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink);cursor:pointer;padding:0;}
+
+      .picker-wrap{max-width:none;}
+      .picker-trigger{padding:10px 12px;font-size:13px;}
+      .picker-panel{width:100%;}
+      .picker-list{max-height:55vh;}
+      .picker-search{font-size:16px;}
+      .picker-item{min-height:42px;}
+      .star-btn{width:40px;height:42px;font-size:16px;}
+
+      .body{padding:0;gap:0;}
+      .main{border:none;border-radius:0;box-shadow:none;}
+      .messages{padding:18px 0 8px;}
+      .messages-inner,.status-bar,.doc-chips{padding-left:14px;padding-right:14px;}
+      .empty-state{padding-top:40px;}
+      .empty-icon{width:56px;height:56px;}
+      .msg{gap:8px;margin-bottom:16px;}
+      .avatar{width:24px;height:24px;font-size:8px;}
+      .msg.assistant .avatar{display:none;}
+      .bubble{max-width:88%;font-size:15px;}
+      .msg.assistant .bubble{max-width:100%;}
+
+      .input-area{padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom));}
+      .input-inner{gap:6px;}
+      /* 16px stops iOS Safari from zooming in when the field is tapped */
+      .input-inner textarea{font-size:16px;min-height:44px;padding:10px 12px;}
+      .upload-btn{width:44px;height:44px;}
+      #send-btn{height:44px;padding:0 16px;}
+      .input-hint{display:none;}
+
+      /* Sidebar becomes a slide-in panel */
+      .sidebar{position:fixed;top:0;right:0;bottom:0;width:min(84vw,320px);z-index:400;border:none;border-left:1px solid var(--border);border-radius:0;transform:translateX(100%);transition:transform 0.22s ease;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+      body.sidebar-open .sidebar{transform:translateX(0);box-shadow:var(--shadow);}
+      .sidebar-backdrop{position:fixed;inset:0;background:rgba(42,38,34,0.35);z-index:350;}
+      body.sidebar-open .sidebar-backdrop{display:block;}
+      .sidebar-close{display:block;position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:36px;height:36px;border:none;background:none;font-size:22px;color:var(--ink-2);cursor:pointer;}
+      .sidebar-signout{display:block;padding:14px 16px;border-top:1px solid var(--border);font-size:14px;color:var(--ink-2);text-decoration:none;flex-shrink:0;}
+      .s-label{font-size:11px;}
+      .hist-model,.hist-preview{font-size:13px;}
+      .hist-item{padding:11px 16px;}
+      .mem-btn{font-size:13px;padding:9px 8px;}
+      .dash-link{font-size:13px;}
+
+      .modal{width:100%;max-width:calc(100vw - 24px);}
+      .modal-footer{flex-wrap:wrap;}
+      .modal-footer button{padding:10px 14px;font-size:13px;}
+    }
   </style>
 </head>
 <body>
@@ -183,6 +247,9 @@
       <div class="topbar-right">
         <a class="btn-ghost" href="/chat" onclick="clearSession()">New chat</a>
         <a class="signout" href="/logout">Sign out</a>
+        <button class="menu-btn" type="button" onclick="toggleSidebar(true)" aria-label="Open history">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
       </div>
     </div>
   </form>
@@ -228,7 +295,9 @@
       </div>
     </div>
 
+    <div class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
     <div class="sidebar">
+      <button class="sidebar-close" type="button" onclick="toggleSidebar(false)" aria-label="Close">×</button>
       <div class="sidebar-block">
         <div class="s-label">Total spent</div>
         <div class="balance-num" id="balance-num">${{ "%.4f"|format(local_spend) }}</div>
@@ -255,6 +324,7 @@
           {% endif %}
         </div>
       </div>
+      <a class="sidebar-signout" href="/logout">Sign out</a>
     </div>
   </div>
 </div>
@@ -397,7 +467,13 @@ var balNum=document.getElementById('balance-num');
 var balSub=document.getElementById('balance-sub');
 
 input.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
-input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+// On touch screens Enter adds a new line; the Send button sends.
+var isTouch=window.matchMedia('(pointer:coarse)').matches;
+input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!isTouch){e.preventDefault();sendMessage();}});
+if(window.matchMedia('(max-width:760px)').matches) input.placeholder='Ask anything…';
+
+function toggleSidebar(open){document.body.classList.toggle('sidebar-open',open);}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')toggleSidebar(false);});
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setStatus(msg,isErr){statusEl.textContent=msg;statusEl.className='status-bar'+(isErr?' error':'');}
