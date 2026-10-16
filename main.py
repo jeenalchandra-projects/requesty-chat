@@ -180,13 +180,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, https_only=False)
+# Secure cookies on Railway (HTTPS); plain HTTP still works for local dev.
+app.add_middleware(
+    SessionMiddleware, secret_key=SECRET_KEY,
+    https_only=bool(os.getenv("RAILWAY_ENVIRONMENT")),
+)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
 def _auth(request: Request) -> bool:
-    return True  # re-enable after testing: return bool(request.session.get("authenticated"))
+    return bool(request.session.get("authenticated"))
 
 
 # ── Auth ──────────────────────────────────────────────────────────
@@ -204,11 +208,12 @@ async def login_page(request: Request):
 
 @app.post("/login", response_class=HTMLResponse)
 async def login_submit(request: Request, password: str = Form(...)):
-    if CHAT_PASSWORD and password == CHAT_PASSWORD:
+    if CHAT_PASSWORD and secrets.compare_digest(password.encode(), CHAT_PASSWORD.encode()):
         request.session["authenticated"] = True
         return RedirectResponse("/chat", status_code=303)
     return templates.TemplateResponse(
-        request=request, name="login.html", context={"error": "Incorrect password"}
+        request=request, name="login.html", context={"error": "Incorrect password"},
+        status_code=401,
     )
 
 

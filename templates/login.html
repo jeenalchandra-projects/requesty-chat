@@ -72,9 +72,9 @@ async function login(){
   btn.disabled=true; btn.textContent='Signing in…'; msg.textContent=''; msg.className='';
   try {
     var r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'password='+encodeURIComponent(pw.value),redirect:'manual'});
-    if(r.status===303||r.status===200){
-      var loc=r.headers.get('location');
-      window.location.href=loc||'/chat';
+    // With redirect:'manual' the browser hides the 303: it shows up as an opaque redirect.
+    if(r.type==='opaqueredirect'||r.status===303){
+      window.location.href='/chat';
     } else {
       msg.textContent='Incorrect password'; msg.className='error';
       btn.disabled=false; btn.textContent='Sign in'; pw.focus(); pw.select();
