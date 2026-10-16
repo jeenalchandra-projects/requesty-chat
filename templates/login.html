@@ -3,61 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mond.ai</title>
+  <title>zora</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <style>
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/static/fonts/inter.woff2") format("woff2"); }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(180deg, #1C2E50 0%, #07101F 55%, #0E1E35 100%);
+      padding: 2rem 1.25rem;
+      background: linear-gradient(180deg, #FFF6EC 0%, #FBF7F1 42%);
       background-attachment: fixed;
-      color: #DFD9CF;
+      color: #2A2622;
+      -webkit-font-smoothing: antialiased;
     }
-    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
     .box {
-      position: relative; z-index: 1;
-      width: 300px;
-      background: rgba(10, 16, 30, 0.82);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 36px 32px 32px;
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      width: 100%; max-width: 360px;
+      background: #FFFFFF;
+      border: 1px solid #ECE4D9;
+      border-radius: 22px;
+      padding: 2.25rem 2rem 2rem;
+      box-shadow: 0 12px 40px rgba(190, 120, 80, 0.12);
     }
-    .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 32px; }
-    .logo-name { font-size: 18px; font-weight: bold; letter-spacing: -0.3px; color: #E8E4DC; }
-    .logo-name span { color: #7A9CC9; }
-    label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; color: #4E5A6E; margin-bottom: 7px; }
+    .logo { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.8rem; }
+    .logo img { width: 36px; height: 36px; display: block; }
+    .logo-name { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; color: #2A2622; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: #2A2622; margin-bottom: 0.4rem; }
     input[type="password"] {
-      width: 100%; padding: 10px 13px;
-      font-family: Arial, sans-serif; font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
-      outline: none; background: rgba(255,255,255,0.05); color: #DFD9CF;
+      width: 100%; padding: 0.8rem 1rem;
+      font-family: inherit; font-size: 1rem;
+      border: 1.5px solid #ECE4D9; border-radius: 12px;
+      outline: none; background: #FFFFFF; color: #2A2622;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input[type="password"]::placeholder { color: #4E5A6E; }
-    input[type="password"]:focus { border-color: #7A9CC9; }
+    input[type="password"]::placeholder { color: #A79E93; }
+    input[type="password"]:focus { border-color: #F2683F; box-shadow: 0 0 0 4px rgba(242, 104, 63, 0.15); }
     #btn {
-      width: 100%; margin-top: 16px; padding: 11px;
-      background: #2459A8; color: #EEF2FA; border: none;
-      border-radius: 8px; font-family: Arial, sans-serif;
-      font-size: 14px; cursor: pointer;
+      width: 100%; margin-top: 1rem; padding: 0.85rem 1rem;
+      background: #F2683F; color: #2A2622; border: none;
+      border-radius: 12px; font-family: inherit;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
     }
-    #btn:hover:not(:disabled) { background: #2F69BF; }
+    #btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(190, 120, 80, 0.10); }
     #btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    #msg { margin-top: 12px; font-size: 12px; min-height: 18px; }
-    #msg.error { color: #E07070; }
-    #msg.info  { color: #8A95A8; }
+    #msg { margin-top: 12px; font-size: 0.85rem; min-height: 18px; }
+    #msg.error { color: #B23A22; }
+    #msg.info  { color: #6B635B; }
   </style>
 </head>
 <body>
-<div id="stars"></div>
 <div class="box">
   <div class="logo">
-    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-      <circle cx="13" cy="13" r="11" fill="#DFD9CF"/>
-      <circle cx="17.5" cy="9.5" r="8.5" fill="#0C1526"/>
-    </svg>
-    <span class="logo-name">mond<span>.ai</span></span>
+    <img src="/static/logo.svg" alt="">
+    <span class="logo-name">zora</span>
   </div>
   <label for="pw">Password</label>
   <input type="password" id="pw" placeholder="Enter password" autofocus>
@@ -65,27 +65,7 @@
   <p id="msg"></p>
 </div>
 
-<style>
-@keyframes twinkle {
-  from { opacity: 0.15; transform: scale(0.85); }
-  to   { opacity: 1;    transform: scale(1.15); }
-}
-</style>
 <script>
-// Stars
-(function(){
-  var c=document.getElementById('stars');
-  for(var i=0;i<140;i++){
-    var size=Math.random()<0.65?1:Math.random()<0.8?1.5:2;
-    var s=document.createElement('div');
-    s.style.cssText='position:absolute;border-radius:50%;width:'+size+'px;height:'+size+'px;' +
-      'left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;' +
-      'background:rgba(255,255,255,'+(0.25+Math.random()*0.75).toFixed(2)+');';
-    if(Math.random()>0.55) s.style.animation='twinkle '+(2+Math.random()*5).toFixed(1)+'s '+(Math.random()*8).toFixed(1)+'s infinite ease-in-out alternate';
-    c.appendChild(s);
-  }
-})();
-
 var pw=document.getElementById('pw'), btn=document.getElementById('btn'), msg=document.getElementById('msg');
 async function login(){
   if(!pw.value.trim()) return;

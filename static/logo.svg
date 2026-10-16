@@ -1,0 +1,19 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Zora">
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC24B"/>
+      <stop offset="0.55" stop-color="#FF8A5B"/>
+      <stop offset="1" stop-color="#FF6B6B"/>
+    </linearGradient>
+  </defs>
+  <!-- rays -->
+  <g stroke="url(#dawn)" stroke-width="7.5" stroke-linecap="round">
+    <line x1="60" y1="39" x2="60" y2="25"/>
+    <line x1="83.8" y1="47.7" x2="92.1" y2="37.7"/>
+    <line x1="36.2" y1="47.7" x2="27.9" y2="37.7"/>
+  </g>
+  <!-- rising sun (half disc on the horizon) -->
+  <path d="M28 76 a32 32 0 0 1 64 0 Z" fill="url(#dawn)"/>
+  <!-- horizon -->
+  <line x1="15" y1="76" x2="105" y2="76" stroke="#F2683F" stroke-width="7.5" stroke-linecap="round"/>
+</svg>
